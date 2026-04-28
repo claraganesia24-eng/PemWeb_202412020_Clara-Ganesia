@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+<meta charset="UTF-8">
+<title>Manajemen Mahasiswa</title>
+
+<style>
+
+body {
+    margin: 0;
+    font-family: Arial;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    background: url('https://koranusantara.com/wp-content/uploads/2026/01/f21704a5-ad49-488e-9e6a-2bebc62cba7a-1392x928-1.jpg') no-repeat center;
+    background-size: cover;
+}
+
+body::before {
+    content: "";
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.4);
+    z-index: 0;
+}
+
+.card {
+    position: relative;
+    z-index: 1;
+    background: rgba(255,255,255,0.40);
+    padding: 25px;
+    border-radius: 15px;
+    width: 750px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+}
+
+h2 {
+    color: #ffffff;
+}
+
+/* ===================== CLARA (71 - 140) ===================== */
+/* Mengatur baris input */
+.form-group {
+    display: flex; /* Membuat isi div sejajar horizontal */
+    gap: 10px; /* Memberi jarak antar input */
+    margin-bottom: 10px; /* Jarak ke bawah antar baris */
+}
+
+/* Styling input & select */
+input, select {
+    flex: 1; /* Semua input punya lebar sama */
+    padding: 10px; /* Ruang dalam biar tidak sempit */
+    border-radius: 8px; /* Membuat sudut melengkung */
+    border: 1px solid #ccc; /* Border abu-abu */
+}
+
+/* Grup tombol */
+.button-group {
+    display: flex; /* Tombol sejajar */
+    gap: 10px; /* Jarak antar tombol */
+}
+
+/* Tombol umum */
+button {
+    flex: 1; /* Lebar tombol sama rata */
+    padding: 10px; /* Ruang dalam tombol */
+    border-radius: 8px; /* Sudut melengkung */
+    border: none; /* Hilangkan border */
+    cursor: pointer; /* Cursor jadi tangan */
+}
+
+/* Tombol simpan */
+.save-btn {
+    background: #00c853; /* Warna hijau */
+    color: white; /* Teks putih */
+}
+
+/* Tombol reset */
+.reset-btn {
+    background: #e80000; /* Warna merah */
+    color: white; /* Teks putih */
+}
+
+.search-box {
+    margin: 15px 0;
+}
+
+.search-box input {
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #0077ff;
+    color: white;
+    padding: 10px;
+}
+
+td {
+    padding: 10px;
+    text-align: center;
+}
+
+tr:nth-child(even) {
+    background: #e3f2fd;
+}
+
+tr:nth-child(odd) {
+    background: #bbdefb;
+}
+
+.delete-btn {
+    background: red;
+    color: white;
+    border: none;
+    padding: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.badge {
+    padding: 5px 10px;
+    border-radius: 6px;
+    color: white;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+.pagi { background: #2196f3; }
+.sore { background: #ff9800; }
+
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+<h2>🎓 Manajemen Mahasiswa</h2>
+
+<!-- ===================== CLARA ===================== -->
+<!-- Form input data -->
+<form id="formMahasiswa"> <!-- Form utama untuk input data mahasiswa -->
+
+    <!-- Input NIM & Nama -->
+    <div class="form-group"> <!-- Membuat 2 input sejajar -->
+        <input type="text" id="nim" placeholder="NIM" required> <!-- Input NIM, wajib diisi -->
+        <input type="text" id="nama" placeholder="Nama Lengkap" required> <!-- Input nama lengkap -->
+    </div>
+
+    <!-- Input Email & Jurusan -->
+    <div class="form-group"> <!-- Baris kedua input -->
+        <input type="email" id="email" placeholder="Email" required> <!-- Input email, validasi otomatis -->
+        <input type="text" id="jurusan" placeholder="Jurusan" required> <!-- Input jurusan -->
+    </div>
+
+    <!-- Input Alamat & Kelas -->
+    <div class="form-group"> <!-- Baris ketiga input -->
+        <input type="text" id="alamat" placeholder="Alamat"> <!-- Input alamat, tidak wajib -->
+
+        <select id="kelas"> <!-- Dropdown pilihan kelas -->
+            <option value="">Pilih Kelas</option> <!-- Default kosong -->
+            <option>Pagi</option> <!-- Pilihan kelas pagi -->
+            <option>Sore</option> <!-- Pilihan kelas sore -->
+        </select>
+    </div>
+
+    <!-- Tombol aksi -->
+    <div class="button-group"> <!-- Wadah tombol -->
+        <button type="submit" class="save-btn">✔ Simpan Data</button> <!-- Tombol submit untuk simpan -->
+        <button type="reset" class="reset-btn">🔄 Reset Form</button> <!-- Tombol reset isi form -->
+    </div>
+
+</form>
+
+<div class="search-box">
+    <input type="text" id="search" placeholder="🔍 Cari data mahasiswa...">
+</div>
+
+<table>
+<thead>
+<tr>
+<th>No</th>
+<th>NIM</th>
+<th>Nama</th>
+<th>Email</th>
+<th>Jurusan</th>
+<th>Alamat</th>
+<th>Kelas</th>
+<th>Aksi</th>
+</tr>
+</thead>
+
+<tbody id="tableBody"></tbody>
+</table>
+
+</div>
+
+<script>
+
+let data = JSON.parse(localStorage.getItem("mahasiswa")) || [];
+
+/* ===================== CLARA ===================== */
+// Event saat form disubmit
+formMahasiswa.addEventListener("submit", function(e){ 
+    e.preventDefault(); // Mencegah halaman reload saat submit
+
+    // Ambil data dari input
+    let mhs = {
+        nim: nim.value, // Ambil nilai dari input NIM
+        nama: nama.value, // Ambil nilai nama
+        email: email.value, // Ambil nilai email
+        jurusan: jurusan.value, // Ambil nilai jurusan
+        alamat: alamat.value, // Ambil nilai alamat
+        kelas: kelas.value // Ambil nilai kelas dari dropdown
+    };
+
+    data.push(mhs); // Menambahkan objek mahasiswa ke array data
+    localStorage.setItem("mahasiswa", JSON.stringify(data)); // Simpan ke localStorage
+
+    tampilkanData(); // Memanggil fungsi untuk refresh tabel
+    this.reset(); // Mengosongkan kembali form
+});
+
+function tampilkanData(filter=""){
+    tableBody.innerHTML = "";
+
+    data
+    .filter(d =>
+        d.nama.toLowerCase().includes(filter) ||
+        d.nim.toLowerCase().includes(filter)
+    )
+    .forEach((d,i)=>{
+
+        let kelasClass = d.kelas.toLowerCase();
+
+        tableBody.innerHTML += `
+        <tr>
+            <td>${i+1}</td>
+            <td>${d.nim}</td>
+            <td>${d.nama}</td>
+            <td>${d.email}</td>
+            <td>${d.jurusan}</td>
+            <td>${d.alamat}</td>
+            <td><span class="badge ${kelasClass}">${d.kelas}</span></td>
+            <td><button class="delete-btn" onclick="hapusData(${i})">Hapus</button></td>
+        </tr>
+        `;
+    });
+}
+
+function hapusData(i){
+    data.splice(i,1);
+    localStorage.setItem("mahasiswa", JSON.stringify(data));
+    tampilkanData();
+}
+
+search.addEventListener("keyup", function(){
+    tampilkanData(this.value.toLowerCase());
+});
+
+tampilkanData();
+
+</script>
+
+</body>
+</html>
